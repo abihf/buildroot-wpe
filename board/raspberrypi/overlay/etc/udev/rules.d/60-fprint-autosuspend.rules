@@ -1,0 +1,8 @@
+# Digital Persona U.are.U 4000/4000B/4500
+SUBSYSTEM=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="00bc", ATTRS{dev}=="*", TEST=="power/control", ATTR{power/control}="auto"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="00bd", ATTRS{dev}=="*", TEST=="power/control", ATTR{power/control}="auto"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="00ca", ATTRS{dev}=="*", TEST=="power/control", ATTR{power/control}="auto"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="05ba", ATTRS{idProduct}=="0007", ATTRS{dev}=="*", TEST=="power/control", ATTR{power/control}="auto"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="05ba", ATTRS{idProduct}=="0008", ATTRS{dev}=="*", TEST=="power/control", ATTR{power/control}="auto"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="05ba", ATTRS{idProduct}=="000a", ATTRS{dev}=="*", TEST=="power/control", ATTR{power/control}="auto"
+
