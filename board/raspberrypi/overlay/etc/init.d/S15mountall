@@ -1,0 +1,19 @@
+#! /bin/sh
+#
+# mount all
+
+case "$1" in
+	start)
+		mount -a
+		;;
+	stop)
+		umount -a
+		;;
+	*)
+		echo "Usage: $0 {start|stop}" >&2
+		exit 1
+		;;
+esac
+
+exit $?
+
