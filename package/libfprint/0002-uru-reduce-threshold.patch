@@ -1,0 +1,13 @@
+
+diff -rpuN libfprint-0.5.1/libfprint/drivers/uru4000.c libfprint-0.5.2/libfprint/drivers/uru4000.c
+--- libfprint-0.5.1/libfprint/drivers/uru4000.c	2013-06-26 19:13:00.000000000 +0700
++++ libfprint-0.5.2/libfprint/drivers/uru4000.c	2015-12-19 19:36:35.183573012 +0700
+@@ -1382,6 +1382,8 @@ struct fp_img_driver uru4000_driver = {
+ 	.flags = FP_IMGDRV_SUPPORTS_UNCONDITIONAL_CAPTURE,
+ 	.img_height = IMAGE_HEIGHT,
+ 	.img_width = IMAGE_WIDTH,
++	
++	.bz3_threshold = 20,
+ 
+ 	.open = dev_init,
+ 	.close = dev_deinit,
