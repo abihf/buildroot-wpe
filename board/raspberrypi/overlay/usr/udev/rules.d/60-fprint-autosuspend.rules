@@ -6,3 +6,5 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="05ba", ATTRS{idProduct}=="0007", ATTRS{dev}=
 SUBSYSTEM=="usb", ATTRS{idVendor}=="05ba", ATTRS{idProduct}=="0008", ATTRS{dev}=="*", TEST=="power/control", ATTR{power/control}="auto"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="05ba", ATTRS{idProduct}=="000a", ATTRS{dev}=="*", TEST=="power/control", ATTR{power/control}="auto"
 
+
+SUBSYSTEM=="usb", ATTRS{idVendor}=="05ba", ATTRS{idProduct}=="000a", GROUP="input", MODE="0664"
