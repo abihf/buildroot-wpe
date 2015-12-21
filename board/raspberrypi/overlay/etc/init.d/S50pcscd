@@ -1,0 +1,21 @@
+
+
+#! /bin/sh
+#
+# pcscd
+
+case "$1" in
+	start)
+		pcscd
+		;;
+	stop)
+		[ -e /run/pcscd/pcscd.pid ] && kill `cat /run/pcscd/pcscd.pid`
+		;;
+	*)
+		echo "Usage: $0 {start|stop}" >&2
+		exit 1
+		;;
+esac
+
+exit $?
+
