@@ -50,6 +50,7 @@ initramfs rootfs.cpio.xz
 
 #device_tree=
 dtoverlay=i2c-rtc,ds3231
+dtoverlay=mmc
 
 ################################################################################
 #
