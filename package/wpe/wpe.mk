@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-WPE_VERSION = b478ef8870ea8248021de169889e8b490cbe364e
+WPE_VERSION = 5b3cbf823890d69a6b6ec80805c1c5f44eb8b7a7
 WPE_SITE = $(call github,Metrological,WebKitForWayland,$(WPE_VERSION))
 
 WPE_INSTALL_STAGING = YES
@@ -47,6 +47,10 @@ endif
 ifeq ($(BR2_PACKAGE_XLIB_LIBX11),)
 WPE_EXTRA_CFLAGS += -DMESA_EGL_NO_X11_HEADERS
 endif
+endif
+
+ifeq ($(BR2_PACKAGE_WPE_ENABLE_LOGGING),y)
+WPE_EXTRA_CFLAGS += -DLOG_DISABLED=0
 endif
 
 ifeq ($(BR2_ENABLE_DEBUG),y)
@@ -96,6 +100,11 @@ WPE_FLAGS += -DENABLE_PROVISIONING=ON
 endif
 endif
 
+ifeq ($(BR2_PACKAGE_OPENWEBRTC),y)
+WPE_DEPENDENCIES += openwebrtc
+WPE_FLAGS += -DENABLE_MEDIA_STREAM=ON
+endif
+
 ifeq ($(BR2_PACKAGE_WPE_USE_GSTREAMER_GL),y)
 WPE_FLAGS += -DUSE_GSTREAMER_GL=ON
 endif
@@ -120,21 +129,18 @@ define WPE_BUILD_CMDS
 endef
 
 define WPE_INSTALL_STAGING_CMDS
-	(pushd $(WPE_BUILDDIR) && \
-	cp bin/WPE{Network,Web}Process $(STAGING_DIR)/usr/bin/ && \
-	cp -d lib/libWPE* $(STAGING_DIR)/usr/lib/ && \
-	DESTDIR=$(STAGING_DIR) $(HOST_DIR)/usr/bin/cmake -DCOMPONENT=Development -P Source/JavaScriptCore/cmake_install.cmake && \
-	DESTDIR=$(STAGING_DIR) $(HOST_DIR)/usr/bin/cmake -DCOMPONENT=Development -P Source/WebKit2/cmake_install.cmake && \
-	popd > /dev/null )
+	(cp $(WPE_BUILDDIR)/bin/WPE{Network,Web}Process $(STAGING_DIR)/usr/bin/ && \
+	cp -d $(WPE_BUILDDIR)/lib/libWPE* $(STAGING_DIR)/usr/lib/ && \
+	DESTDIR=$(STAGING_DIR) $(HOST_DIR)/usr/bin/cmake -DCOMPONENT=Development -P $(WPE_BUILDDIR)/Source/JavaScriptCore/cmake_install.cmake > /dev/null && \
+	DESTDIR=$(STAGING_DIR) $(HOST_DIR)/usr/bin/cmake -DCOMPONENT=Development -P $(WPE_BUILDDIR)/Source/WebKit2/cmake_install.cmake > /dev/null )
+
 
 endef
 
 define WPE_INSTALL_TARGET_CMDS
-	(pushd $(WPE_BUILDDIR) > /dev/null && \
-	cp bin/WPE{Network,Web}Process $(TARGET_DIR)/usr/bin/ && \
-	cp -d lib/libWPE* $(TARGET_DIR)/usr/lib/ && \
-	$(STRIPCMD) $(TARGET_DIR)/usr/lib/libWPEWebKit.so.0.0.1 && \
-	popd > /dev/null)
+	(cp $(WPE_BUILDDIR)/bin/WPE{Network,Web}Process $(TARGET_DIR)/usr/bin/ && \
+	cp -d $(WPE_BUILDDIR)/lib/libWPE* $(TARGET_DIR)/usr/lib/ && \
+	$(STRIPCMD) $(TARGET_DIR)/usr/lib/libWPEWebKit.so.0.0.*)
 endef
 endif
 
