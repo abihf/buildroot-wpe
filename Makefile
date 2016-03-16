@@ -2,7 +2,7 @@
 #
 # Copyright (C) 1999-2005 by Erik Andersen <andersen@codepoet.org>
 # Copyright (C) 2006-2014 by the Buildroot developers <buildroot@uclibc.org>
-# Copyright (C) 2014-2015 by the Buildroot developers <buildroot@buildroot.org>
+# Copyright (C) 2014-2016 by the Buildroot developers <buildroot@buildroot.org>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ else # umask
 all:
 
 # Set and export the version string
-export BR2_VERSION := 2016.02-git
+export BR2_VERSION := 2016.05-git
 
 # Save running make version since it's clobbered by the make package
 RUNNING_MAKE_VERSION := $(MAKE_VERSION)
@@ -69,7 +69,7 @@ endif
 .NOTPARALLEL:
 
 # absolute path
-TOPDIR := $(shell pwd)
+TOPDIR := $(CURDIR)
 CONFIG_CONFIG_IN = Config.in
 CONFIG = support/kconfig
 DATE := $(shell date +%Y%m%d)
@@ -94,7 +94,7 @@ noconfig_targets := menuconfig nconfig gconfig xconfig config oldconfig randconf
 # something else than one of the nobuild_targets.
 nobuild_targets := source source-check \
 	legal-info external-deps _external-deps \
-	clean distclean
+	clean distclean help
 ifeq ($(MAKECMDGOALS),)
 BR_BUILDING = y
 else ifneq ($(filter-out $(nobuild_targets),$(MAKECMDGOALS)),)
@@ -721,8 +721,10 @@ graph-depends: graph-depends-requirements
 	@$(INSTALL) -d $(GRAPHS_DIR)
 	@cd "$(CONFIG_DIR)"; \
 	$(TOPDIR)/support/scripts/graph-depends $(BR2_GRAPH_DEPS_OPTS) \
-	|tee $(GRAPHS_DIR)/$(@).dot \
-	|dot $(BR2_GRAPH_DOT_OPTS) -T$(BR_GRAPH_OUT) -o $(GRAPHS_DIR)/$(@).$(BR_GRAPH_OUT)
+		-o $(GRAPHS_DIR)/$(@).dot
+	dot $(BR2_GRAPH_DOT_OPTS) -T$(BR_GRAPH_OUT) \
+		-o $(GRAPHS_DIR)/$(@).$(BR_GRAPH_OUT) \
+		$(GRAPHS_DIR)/$(@).dot
 
 graph-size:
 	$(Q)mkdir -p $(GRAPHS_DIR)
@@ -730,6 +732,10 @@ graph-size:
 		--graph $(GRAPHS_DIR)/graph-size.$(BR_GRAPH_OUT) \
 		--file-size-csv $(GRAPHS_DIR)/file-size-stats.csv \
 		--package-size-csv $(GRAPHS_DIR)/package-size-stats.csv
+
+check-dependencies:
+	@cd "$(CONFIG_DIR)"; \
+	$(TOPDIR)/support/scripts/graph-depends -C
 
 else # ifeq ($(BR2_HAVE_DOT_CONFIG),y)
 

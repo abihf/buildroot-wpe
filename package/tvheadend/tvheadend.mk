@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-TVHEADEND_VERSION = 66e5d277a59db723a8718afb3bdbef63824fa050
+TVHEADEND_VERSION = 3927788bb71ad0041a00d0daa35fae1cb6355b55
 TVHEADEND_SITE = $(call github,tvheadend,tvheadend,$(TVHEADEND_VERSION))
 TVHEADEND_LICENSE = GPLv3+
 TVHEADEND_LICENSE_FILES = LICENSE.md
@@ -39,6 +39,13 @@ else
 TVHEADEND_CONF_OPTS += --disable-dvbcsa
 endif
 
+ifeq ($(BR2_PACKAGE_LIBHDHOMERUN),y)
+TVHEADEND_DEPENDENCIES += libhdhomerun
+TVHEADEND_CONF_OPTS += --enable-hdhomerun_client
+else
+TVHEADEND_CONF_OPTS += --disable-hdhomerun_client
+endif
+
 ifeq ($(BR2_PACKAGE_LIBICONV),y)
 TVHEADEND_DEPENDENCIES += libiconv
 endif
@@ -70,10 +77,12 @@ define TVHEADEND_CONFIGURE_CMDS
 			--prefix=/usr				\
 			--arch="$(ARCH)"			\
 			--cpu="$(BR2_GCC_TARGET_CPU)"		\
+			--nowerror				\
 			--python="$(HOST_DIR)/usr/bin/python"	\
 			--enable-dvbscan			\
 			--enable-bundle				\
 			--disable-libffmpeg_static		\
+			--disable-hdhomerun_static		\
 			$(TVHEADEND_CONF_OPTS)			\
 	)
 endef
