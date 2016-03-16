@@ -1,0 +1,154 @@
+
+diff -rpuN libfprint-0.5.1/libfprint/fp_internal.h libfprint-0.5.2/libfprint/fp_internal.h
+--- libfprint-0.5.1/libfprint/fp_internal.h	2013-06-26 19:13:00.000000000 +0700
++++ libfprint-0.5.2/libfprint/fp_internal.h	2015-12-19 21:31:23.889749097 +0700
+@@ -175,6 +175,9 @@ struct fp_img_dev {
+ 
+ 	/* FIXME: better place to put this? */
+ 	size_t identify_match_offset;
++	
++	int match_threshold;
++	int match_score;
+ 
+ 	void *priv;
+ };
+@@ -367,7 +370,7 @@ int fpi_img_to_print_data(struct fp_img_
+ int fpi_img_compare_print_data(struct fp_print_data *enrolled_print,
+ 	struct fp_print_data *new_print);
+ int fpi_img_compare_print_data_to_gallery(struct fp_print_data *print,
+-	struct fp_print_data **gallery, int match_threshold, size_t *match_offset);
++	struct fp_print_data **gallery, int match_threshold, size_t *match_offset, int *match_score);
+ struct fp_img *fpi_im_resize(struct fp_img *img, unsigned int w_factor, unsigned int h_factor);
+ 
+ /* polling and timeouts */
+diff -rpuN libfprint-0.5.1/libfprint/fprint.h libfprint-0.5.2/libfprint/fprint.h
+--- libfprint-0.5.1/libfprint/fprint.h	2013-06-26 19:13:00.000000000 +0700
++++ libfprint-0.5.2/libfprint/fprint.h	2015-12-19 21:31:26.132749177 +0700
+@@ -240,6 +240,9 @@ static inline int fp_identify_finger(str
+ 	return fp_identify_finger_img(dev, print_gallery, match_offset, NULL);
+ }
+ 
++void fp_dev_set_match_threshold(struct fp_dev *dev, int threshold);
++int fp_dev_get_last_match_score(struct fp_dev *dev);
++
+ /* Data handling */
+ int fp_print_data_load(struct fp_dev *dev, enum fp_finger finger,
+ 	struct fp_print_data **data);
+diff -rpuN libfprint-0.5.1/libfprint/img.c libfprint-0.5.2/libfprint/img.c
+--- libfprint-0.5.1/libfprint/img.c	2013-06-26 19:21:06.000000000 +0700
++++ libfprint-0.5.2/libfprint/img.c	2015-12-19 20:57:04.234675748 +0700
+@@ -364,7 +364,8 @@ int fpi_img_compare_print_data(struct fp
+ }
+ 
+ int fpi_img_compare_print_data_to_gallery(struct fp_print_data *print,
+-	struct fp_print_data **gallery, int match_threshold, size_t *match_offset)
++	struct fp_print_data **gallery, int match_threshold, 
++	size_t *match_offset, int *match_score)
+ {
+ 	struct xyt_struct *pstruct = (struct xyt_struct *) print->data;
+ 	struct fp_print_data *gallery_print;
+@@ -376,6 +377,7 @@ int fpi_img_compare_print_data_to_galler
+ 		int r = bozorth_to_gallery(probe_len, pstruct, gstruct);
+ 		if (r >= match_threshold) {
+ 			*match_offset = i - 1;
++			*match_score = r;
+ 			return FP_VERIFY_MATCH;
+ 		}
+ 	}
+diff -rpuN libfprint-0.5.1/libfprint/imgdev.c libfprint-0.5.2/libfprint/imgdev.c
+--- libfprint-0.5.1/libfprint/imgdev.c	2013-06-26 19:13:00.000000000 +0700
++++ libfprint-0.5.2/libfprint/imgdev.c	2015-12-19 21:36:16.397759514 +0700
+@@ -171,38 +171,46 @@ void fpi_imgdev_report_finger_status(str
+ 
+ static void verify_process_img(struct fp_img_dev *imgdev)
+ {
+-	struct fp_img_driver *imgdrv = fpi_driver_to_img_driver(imgdev->dev->drv);
+-	int match_score = imgdrv->bz3_threshold;
+-	int r;
+-
+-	if (match_score == 0)
+-		match_score = BOZORTH3_DEFAULT_THRESHOLD;
++	int result;
++	int score;
++	int threshold = imgdev->match_threshold;
++        
++        if (threshold == 0)
++                threshold = fpi_driver_to_img_driver(imgdev->dev->drv)->bz3_threshold;
++	if (threshold == 0)
++		threshold = BOZORTH3_DEFAULT_THRESHOLD;
+ 
+-	r = fpi_img_compare_print_data(imgdev->dev->verify_data,
++	score = fpi_img_compare_print_data(imgdev->dev->verify_data,
+ 		imgdev->acquire_data);
++        
++	if (score >= threshold)
++		result = FP_VERIFY_MATCH;
++	else if (score >= 0)
++		result = FP_VERIFY_NO_MATCH;
++        else
++                result = score;
+ 
+-	if (r >= match_score)
+-		r = FP_VERIFY_MATCH;
+-	else if (r >= 0)
+-		r = FP_VERIFY_NO_MATCH;
+-
+-	imgdev->action_result = r;
++        imgdev->match_score = score;
++	imgdev->action_result = result;
+ }
+ 
+ static void identify_process_img(struct fp_img_dev *imgdev)
+ {
+-	struct fp_img_driver *imgdrv = fpi_driver_to_img_driver(imgdev->dev->drv);
+-	int match_score = imgdrv->bz3_threshold;
+ 	size_t match_offset;
+-	int r;
++	int result;
++	int threshold = imgdev->match_threshold;
++	int score = 0;
++
++        if (threshold == 0)
++                threshold = fpi_driver_to_img_driver(imgdev->dev->drv)->bz3_threshold;
++	if (threshold == 0)
++		threshold = BOZORTH3_DEFAULT_THRESHOLD;
+ 
+-	if (match_score == 0)
+-		match_score = BOZORTH3_DEFAULT_THRESHOLD;
++	result = fpi_img_compare_print_data_to_gallery(imgdev->acquire_data,
++		imgdev->dev->identify_gallery, threshold, &match_offset, &score);
+ 
+-	r = fpi_img_compare_print_data_to_gallery(imgdev->acquire_data,
+-		imgdev->dev->identify_gallery, match_score, &match_offset);
+-
+-	imgdev->action_result = r;
++	imgdev->action_result = result;
++	imgdev->match_score = score;
+ 	imgdev->identify_match_offset = match_offset;
+ }
+ 
+@@ -459,3 +467,24 @@ void fpi_img_driver_setup(struct fp_img_
+ 	idriver->driver.identify_stop = img_dev_identify_stop;
+ }
+ 
++
++// FIXME: where I should place it?
++API_EXPORTED 
++void fp_dev_set_match_threshold(struct fp_dev *dev, int threshold)
++{
++        if (dev->drv->type == DRIVER_IMAGING) {
++                struct fp_img_dev *idev = dev->priv;
++                idev->match_threshold = threshold;
++        }
++}
++
++API_EXPORTED 
++int fp_dev_get_last_match_score(struct fp_dev *dev)
++{
++        if (dev->drv->type == DRIVER_IMAGING) {
++                struct fp_img_dev *idev = dev->priv;
++                return idev->match_score;
++        } else {
++                return -1;
++        }
++}
