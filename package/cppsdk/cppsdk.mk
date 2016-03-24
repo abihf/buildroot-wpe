@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-CPPSDK_VERSION = cccf6d247dc49402a2d3cedfd4f8be179c7b7a5c
+CPPSDK_VERSION = 2a28ad5cfee5275bf94d1735115927a41c13c0c9
 CPPSDK_SITE_METHOD = git
 CPPSDK_SITE = git@github.com:Metrological/cppsdk.git
 CPPSDK_INSTALL_STAGING = YES
@@ -61,6 +61,10 @@ endif
 
 ifeq ($(BR2_PACKAGE_CPPSDK_DEVICES),y)
 CPPSDK_CONF_OPTS += -DCPPSDK_DEVICES=ON
+endif
+
+ifeq ($(BR2_PACKAGE_CPPSDK_MQC),y)
+CPPSDK_CONF_OPTS += -DCPPSDK_MQC=ON
 endif
 
 $(eval $(cmake-package))

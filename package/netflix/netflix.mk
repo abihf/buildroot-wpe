@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-NETFLIX_VERSION = 1b15036ebc8dd87592dd95e8694bf1402960bb57
+NETFLIX_VERSION = c23f8bcb37154d9b765e81f9e4ff339b71c62044
 NETFLIX_SITE = git@github.com:Metrological/netflix.git
 NETFLIX_SITE_METHOD = git
 NETFLIX_LICENSE = PROPRIETARY
@@ -64,6 +64,10 @@ NETFLIX_CONF_OPTS += \
 	-DGIBBON_GRAPHICS=intelce \
 	-DGIBBON_PLATFORM=posix
 NRD_DEPENDENCIES += libgles libegl intelce-graphics
+else ifeq ($(BR2_PACKAGE_HORIZON_SDK),y)
+NETFLIX_CONF_OPTS += \
+	-DGIBBON_GRAPHICS=intelce \
+	-DGIBBON_PLATFORM=posix
 else ifeq ($(BR2_PACKAGE_HAS_LIBEGL)$(BR2_PACKAGE_HAS_LIBGLES),yy)
 NETFLIX_CONF_OPTS += \
 	-DGIBBON_GRAPHICS=gles2-egl \
