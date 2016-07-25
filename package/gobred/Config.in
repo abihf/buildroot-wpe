@@ -1,0 +1,10 @@
+config BR2_PACKAGE_GOBRED
+	bool "gobred"
+	select BR2_PACKAGE_WPE
+	select BR2_PACKAGE_LIBFPRINT
+	select BR2_PACKAGE_PCSC_LITE
+	help
+	  Gobred project
+
+	  http://github.com/abihf/gobred
+
